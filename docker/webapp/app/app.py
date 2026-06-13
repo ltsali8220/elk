@@ -124,6 +124,17 @@ def login():
         session["user_id"] = user["id"]
         session["username"] = user["username"]
         session["role"] = user["role"]
+        try:
+            conn = _db()
+            cur = conn.cursor()
+            cur.execute(
+                "UPDATE users SET last_login=NOW(), login_count=login_count+1 WHERE id=%s",
+                (user["id"],),
+            )
+            conn.commit()
+            conn.close()
+        except Exception:
+            pass
         _log("login", "success", user=username, user_id=user["id"])
         return redirect(url_for("dashboard"))
     _log("login", "failure", user=username)
