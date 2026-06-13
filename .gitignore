@@ -1,0 +1,39 @@
+# Claude Code
+.claude/
+
+# Vagrant runtime
+.vagrant/
+
+# Environment secrets
+.env
+*.env
+.env.*
+
+# Docker volumes / data
+docker/elk/elasticsearch/data/
+docker/elk/logstash/data/
+docker/elk/kibana/data/
+docker/webapp/postgres/data/
+
+# Logs
+*.log
+logs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+docs/__pycache__/
+
+# Generated files
+docs/elk-linux-desktop-guide.pdf
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+*.swp
+*.swo

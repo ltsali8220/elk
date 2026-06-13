@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ELK Stack — Linux Desktop Installation Guide</title>
+<style>
+  /* ── Page & Print Setup ─────────────────────────────── */
+  @page {
+    size: A4;
+    margin: 18mm 15mm 18mm 15mm;
+  }
+  @media print {
+    .no-print { display: none; }
+    h1, h2, h3 { page-break-after: avoid; }
+    pre, table  { page-break-inside: avoid; }
+    .page-break { page-break-before: always; }
+  }
+
+  /* ── Base ───────────────────────────────────────────── */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 13px;
+    line-height: 1.65;
+    color: #1a1a2e;
+    background: #fff;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 32px;
+  }
+
+  /* ── Cover ──────────────────────────────────────────── */
+  .cover {
+    text-align: center;
+    padding: 60px 0 40px;
+    border-bottom: 3px solid #005f87;
+    margin-bottom: 36px;
+  }
+  .cover .logo {
+    font-size: 48px;
+    font-weight: 900;
+    letter-spacing: -2px;
+    color: #005f87;
+  }
+  .cover .logo span { color: #f5a623; }
+  .cover h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 16px 0 8px;
+    color: #1a1a2e;
+  }
+  .cover .subtitle {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 32px;
+  }
+  .cover .meta {
+    display: inline-grid;
+    grid-template-columns: auto auto;
+    gap: 6px 24px;
+    text-align: left;
+    font-size: 12px;
+    background: #f4f8fb;
+    padding: 14px 28px;
+    border-radius: 6px;
+    border: 1px solid #d0e4f0;
+  }
+  .cover .meta strong { color: #005f87; }
+
+  /* ── Typography ─────────────────────────────────────── */
+  h2 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #005f87;
+    border-bottom: 2px solid #005f87;
+    padding-bottom: 4px;
+    margin: 32px 0 14px;
+  }
+  h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 22px 0 8px;
+    padding-left: 10px;
+    border-left: 3px solid #f5a623;
+  }
+  h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #333;
+    margin: 14px 0 6px;
+  }
+  p { margin: 6px 0 10px; }
+  ul, ol { margin: 6px 0 10px 22px; }
+  li { margin-bottom: 4px; }
+
+  /* ── Code blocks ────────────────────────────────────── */
+  pre {
+    background: #0d1117;
+    color: #c9d1d9;
+    border-radius: 6px;
+    padding: 14px 16px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 11.5px;
+    line-height: 1.6;
+    margin: 10px 0 14px;
+    overflow-x: auto;
+    border-left: 4px solid #005f87;
+  }
+  code {
+    background: #eef4f8;
+    color: #005f87;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 11.5px;
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+  pre code { background: none; color: inherit; padding: 0; }
+
+  /* ── Comment / prompt colours in code ──────────────── */
+  .c  { color: #8b949e; }   /* comment */
+  .p  { color: #f5a623; }   /* prompt / keyword */
+  .s  { color: #a5d6ff; }   /* string */
+  .kw { color: #ff7b72; }   /* keyword */
+
+  /* ── Tables ─────────────────────────────────────────── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin: 10px 0 16px;
+  }
+  th {
+    background: #005f87;
+    color: #fff;
+    padding: 7px 10px;
+    text-align: left;
+    font-weight: 600;
+  }
+  td { padding: 6px 10px; border-bottom: 1px solid #dde8f0; }
+  tr:nth-child(even) td { background: #f4f8fb; }
+
+  /* ── Callout boxes ───────────────────────────────────── */
+  .note, .warn, .tip, .cmd {
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 12px 0;
+    font-size: 12.5px;
+  }
+  .note { background: #e8f4fb; border-left: 4px solid #005f87; }
+  .warn { background: #fff3cd; border-left: 4px solid #f5a623; }
+  .tip  { background: #e6f9f0; border-left: 4px solid #28a745; }
+  .note strong, .warn strong, .tip strong { display: block; margin-bottom: 3px; }
+
+  /* ── Step badges ─────────────────────────────────────── */
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 28px 0 10px;
+  }
+  .step-badge {
+    background: #005f87;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .step-title { font-size: 15px; font-weight: 700; color: #005f87; }
+
+  /* ── TOC ─────────────────────────────────────────────── */
+  .toc {
+    background: #f4f8fb;
+    border: 1px solid #d0e4f0;
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin-bottom: 32px;
+  }
+  .toc h3 { border: none; margin: 0 0 10px; padding: 0; font-size: 13px; color: #005f87; }
+  .toc ol { margin-left: 18px; }
+  .toc li { margin-bottom: 3px; font-size: 12px; color: #333; }
+
+  /* ── Architecture diagram ───────────────────────────── */
+  .arch {
+    background: #0d1117;
+    color: #c9d1d9;
+    border-radius: 8px;
+    padding: 18px 20px;
+    font-family: 'Consolas', monospace;
+    font-size: 11px;
+    line-height: 1.7;
+    margin: 12px 0;
+  }
+
+  /* ── Print button ────────────────────────────────────── */
+  .print-btn {
+    position: fixed;
+    top: 20px; right: 20px;
+    background: #005f87;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    z-index: 1000;
+  }
+  .print-btn:hover { background: #004a6e; }
+
+  /* ── Credential box ─────────────────────────────────── */
+  .creds {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 12px 0;
+  }
+  .cred-card {
+    background: #f4f8fb;
+    border: 1px solid #c0d8eb;
+    border-radius: 6px;
+    padding: 10px 14px;
+  }
+  .cred-card h4 { margin: 0 0 6px; color: #005f87; font-size: 12px; }
+  .cred-card code { font-size: 12px; }
+</style>
+</head>
+<body>
+
+<button class="print-btn no-print" onclick="window.print()">Save as PDF</button>
+
+<!-- ═══════════════════════════════ COVER ═══════════════════════════════ -->
+<div class="cover">
+  <div class="logo">EL<span>K</span></div>
+  <h1>ELK Stack — Linux Desktop Installation Guide</h1>
+  <p class="subtitle">Complete setup for Elasticsearch · Logstash · Kibana on Debian/Ubuntu<br>
+  with full log monitoring (system, auth, kernel, Docker, application)</p>
+  <div class="meta">
+    <span><strong>ELK Version</strong></span>   <span>8.13.4</span>
+    <span><strong>OS Target</strong></span>      <span>Debian 11/12 · Ubuntu 22.04/24.04</span>
+    <span><strong>Architecture</strong></span>   <span>All-in-one (single host)</span>
+    <span><strong>RAM Required</strong></span>   <span>Minimum 8 GB (16 GB recommended)</span>
+    <span><strong>Disk Required</strong></span>  <span>Minimum 40 GB free</span>
+    <span><strong>Date</strong></span>           <span>2026-06-13</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ TOC ═══════════════════════════════ -->
+<div class="toc">
+  <h3>Table of Contents</h3>
+  <ol>
+    <li>Architecture Overview</li>
+    <li>Prerequisites &amp; System Preparation</li>
+    <li>Install Elasticsearch</li>
+    <li>Install Logstash</li>
+    <li>Configure Logstash Pipelines</li>
+    <li>Install Kibana</li>
+    <li>Install Filebeat (Log Collection Agent)</li>
+    <li>Configure All Log Sources</li>
+    <li>Create Kibana Index Patterns &amp; Dashboards</li>
+    <li>Verify Everything is Working</li>
+    <li>Day-to-Day Operations</li>
+    <li>Troubleshooting</li>
+  </ol>
+</div>
+
+
+<!-- ═══════════════════════════════ SECTION 1 ═══════════════════════════════ -->
+<h2>1. Architecture Overview</h2>
+
+<p>All components run on the <strong>same Linux desktop machine</strong>. No VM or Docker required.
+Filebeat collects logs from the OS and ships them to Logstash. Logstash parses and
+routes them to Elasticsearch. Kibana reads from Elasticsearch to display dashboards.</p>
+
+<div class="arch">
+┌──────────────────────────── Linux Desktop ─────────────────────────────┐
+│                                                                         │
+│   Log Sources          Collector         Processor        Storage/UI   │
+│   ───────────          ─────────         ─────────        ──────────   │
+│   /var/log/syslog  ─┐                                                  │
+│   /var/log/auth.log─┤                                                  │
+│   /var/log/kern.log─┼──► Filebeat ──► Logstash:5044 ──► Elasticsearch │
+│   journald         ─┤    :5066         :5514 (syslog)    :9200         │
+│   Docker containers─┘                  :5000 (tcp/json)                │
+│   App log files ───────────────────────────────────────────────────►   │
+│                                                                         │
+│                                              Kibana :5601               │
+│                                              http://localhost:5601       │
+└─────────────────────────────────────────────────────────────────────────┘
+</div>
+
+<h3>Log Index Strategy</h3>
+<table>
+  <tr><th>Index Pattern</th><th>Contents</th><th>Source</th></tr>
+  <tr><td><code>syslog-*</code></td><td>System logs, kernel messages</td><td>Filebeat → /var/log/syslog, kern.log</td></tr>
+  <tr><td><code>auth-logs-*</code></td><td>SSH logins, sudo, su, PAM</td><td>Filebeat → /var/log/auth.log</td></tr>
+  <tr><td><code>docker-logs-*</code></td><td>Docker container stdout/stderr</td><td>Filebeat → Docker socket</td></tr>
+  <tr><td><code>app-logs-*</code></td><td>Application log files</td><td>Filebeat → /var/log/app/</td></tr>
+  <tr><td><code>journal-logs-*</code></td><td>systemd journal</td><td>Filebeat journald input</td></tr>
+  <tr><td><code>misc-logs-*</code></td><td>Everything else</td><td>Fallthrough</td></tr>
+</table>
+
+
+<!-- ═══════════════════════════════ SECTION 2 ═══════════════════════════════ -->
+<h2>2. Prerequisites &amp; System Preparation</h2>
+
+<h3>2.1 Check system resources</h3>
+<pre><code><span class="c"># RAM — need at least 8 GB</span>
+free -h
+
+<span class="c"># Disk — need at least 40 GB free</span>
+df -h /
+
+<span class="c"># CPU cores (ELK works best with 4+)</span>
+nproc</code></pre>
+
+<h3>2.2 Update the system</h3>
+<pre><code>sudo apt-get update && sudo apt-get upgrade -y</code></pre>
+
+<h3>2.3 Set vm.max_map_count (required by Elasticsearch)</h3>
+<p>Elasticsearch needs a higher virtual memory limit than the Linux default.</p>
+<pre><code><span class="c"># Apply immediately</span>
+sudo sysctl -w vm.max_map_count=262144
+
+<span class="c"># Make permanent (survives reboot)</span>
+echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf</code></pre>
+
+<h3>2.4 Add the Elastic APT repository</h3>
+<p>One repo covers all ELK components — run this once.</p>
+<pre><code><span class="c"># Import signing key</span>
+curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch \
+  | sudo gpg --dearmor -o /usr/share/keyrings/elastic.gpg
+
+<span class="c"># Add repository</span>
+echo "deb [signed-by=/usr/share/keyrings/elastic.gpg] \
+  https://artifacts.elastic.co/packages/8.x/apt stable main" \
+  | sudo tee /etc/apt/sources.list.d/elastic-8.x.list
+
+<span class="c"># Refresh package list</span>
+sudo apt-get update</code></pre>
+
+<div class="note">
+  <strong>Note — Internet access required</strong>
+  These commands download packages from Elastic's servers. Make sure your machine has internet access. Total download is approximately 1.2 GB.
+</div>
+
+
+<!-- ═══════════════════════════════ SECTION 3 ═══════════════════════════════ -->
+<h2>3. Install Elasticsearch</h2>
+
+<div class="step-header"><div class="step-badge">1</div><div class="step-title">Install the package</div></div>
+<pre><code>sudo apt-get install -y elasticsearch=8.13.4
+
+<span class="c"># Lock the version so apt update doesn't upgrade it</span>
+sudo apt-mark hold elasticsearch</code></pre>
+
+<div class="step-header"><div class="step-badge">2</div><div class="step-title">Configure Elasticsearch</div></div>
+<pre><code>sudo nano /etc/elasticsearch/elasticsearch.yml</code></pre>
+
+<p>Replace the entire file with the following (or add these lines):</p>
+<pre><code>cluster.name: elk-desktop-lab
+node.name: desktop-node-1
+network.host: 0.0.0.0
+http.port: 9200
+discovery.type: single-node
+
+<span class="c"># Security — enabled but no TLS for local lab</span>
+xpack.security.enabled: true
+xpack.security.http.ssl.enabled: false
+xpack.security.transport.ssl.enabled: false</code></pre>
+
+<div class="step-header"><div class="step-badge">3</div><div class="step-title">Set JVM heap size</div></div>
+<p>Elasticsearch uses 50% of RAM by default. Limit it explicitly to leave room for Kibana and Logstash.</p>
+<pre><code>sudo nano /etc/elasticsearch/jvm.options.d/heap.options</code></pre>
+<pre><code><span class="c"># Use half your available RAM, max 8g</span>
+<span class="c"># Example for 16 GB machine:</span>
+-Xms4g
+-Xmx4g
+
+<span class="c"># Example for 8 GB machine:</span>
+<span class="c"># -Xms2g</span>
+<span class="c"># -Xmx2g</span></code></pre>
+
+<div class="step-header"><div class="step-badge">4</div><div class="step-title">Start Elasticsearch and set the elastic password</div></div>
+<pre><code><span class="c"># Enable and start</span>
+sudo systemctl daemon-reload
+sudo systemctl enable elasticsearch
+sudo systemctl start elasticsearch
+
+<span class="c"># Wait ~30 seconds then check status</span>
+sudo systemctl status elasticsearch --no-pager
+
+<span class="c"># Set the elastic superuser password</span>
+sudo /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic -i
+<span class="c"># When prompted, enter:  ElkLab@2024</span></code></pre>
+
+<div class="step-header"><div class="step-badge">5</div><div class="step-title">Verify Elasticsearch</div></div>
+<pre><code>curl -u elastic:ElkLab@2024 http://localhost:9200/_cluster/health?pretty</code></pre>
+
+<p>Expected output — <code>"status" : "green"</code> :</p>
+<pre><code>{
+  "cluster_name" : "elk-desktop-lab",
+  "status" : "green",
+  "number_of_nodes" : 1,
+  "number_of_data_nodes" : 1,
+  ...
+}</code></pre>
+
+<div class="note">
+  <strong>Note — single-node health</strong>
+  On a single node you may see <code>"status": "yellow"</code> after adding data. This is normal — it means replica shards cannot be assigned (no second node). All your data is safe.
+</div>
+
+
+<!-- ═══════════════════════════════ SECTION 4 ═══════════════════════════════ -->
+<div class="page-break"></div>
+<h2>4. Install Logstash</h2>
+
+<div class="step-header"><div class="step-badge">1</div><div class="step-title">Install the package</div></div>
+<pre><code>sudo apt-get install -y logstash=1:8.13.4-1
+sudo apt-mark hold logstash</code></pre>
+
+<div class="step-header"><div class="step-badge">2</div><div class="step-title">Configure Logstash settings</div></div>
+<pre><code>sudo nano /etc/logstash/logstash.yml</code></pre>
+<pre><code>http.host: "0.0.0.0"
+xpack.monitoring.enabled: false
+config.reload.automatic: true
+config.reload.interval: 30s
+pipeline.workers: 2</code></pre>
+
+<div class="step-header"><div class="step-badge">3</div><div class="step-title">Set JVM heap for Logstash</div></div>
+<pre><code>sudo nano /etc/logstash/jvm.options</code></pre>
+<p>Find and update the heap lines:</p>
+<pre><code>-Xms512m
+-Xmx1g</code></pre>
+
+<div class="step-header"><div class="step-badge">4</div><div class="step-title">Create the Logstash internal user in Elasticsearch</div></div>
+<p>Logstash needs a write-only account to index logs. Run these curl commands:</p>
+<pre><code><span class="c"># Create a role that can write to log indices only</span>
+curl -u elastic:ElkLab@2024 -X PUT \
+  http://localhost:9200/_security/role/logstash_writer \
+  -H "Content-Type: application/json" -d '{
+    "cluster": ["manage_index_templates", "monitor"],
+    "indices": [{
+      "names": ["syslog-*","auth-logs-*","docker-logs-*",
+                 "app-logs-*","journal-logs-*","misc-logs-*"],
+      "privileges": ["write","create_index","create"]
+    }]
+  }'
+
+<span class="c"># Create the logstash_internal user with that role</span>
+curl -u elastic:ElkLab@2024 -X PUT \
+  http://localhost:9200/_security/user/logstash_internal \
+  -H "Content-Type: application/json" -d '{
+    "password": "LogstashLab@2024",
+    "roles":    ["logstash_writer"],
+    "full_name": "Logstash Internal"
+  }'</code></pre>
+
+<div class="step-header"><div class="step-badge">5</div><div class="step-title">Enable Logstash</div></div>
+<pre><code>sudo systemctl enable logstash</code></pre>
+<p>Do <strong>not</strong> start it yet — configure the pipeline first (Section 5).</p>
+
+
+<!-- ═══════════════════════════════ SECTION 5 ═══════════════════════════════ -->
+<h2>5. Configure Logstash Pipelines</h2>
+<p>Pipeline files go in <code>/etc/logstash/conf.d/</code>. Logstash reads all <code>.conf</code>
+files in that directory in alphabetical order.</p>
+
+<h3>5.1 Input — 01-input.conf</h3>
+<pre><code>sudo nano /etc/logstash/conf.d/01-input.conf</code></pre>
+<pre><code>input {
+  <span class="c"># Filebeat agent sends logs here</span>
+  beats {
+    port => 5044
+  }
+
+  <span class="c"># Any app sending JSON over TCP</span>
+  tcp {
+    port  => 5000
+    codec => json
+    tags  => ["tcp_json"]
+  }
+
+  <span class="c"># Traditional syslog (UDP + TCP)</span>
+  syslog {
+    port => 5514
+    tags => ["syslog_raw"]
+  }
+}</code></pre>
+
+<h3>5.2 Auth log filter — 10-auth-filter.conf</h3>
+<pre><code>sudo nano /etc/logstash/conf.d/10-auth-filter.conf</code></pre>
+<pre><code>filter {
+  if "linux_auth" in [tags] {
+    grok {
+      match => {
+        "message" => [
+          "%{SYSLOGTIMESTAMP:syslog_ts} %{SYSLOGHOST:host_name} %{DATA:proc}(?:\[%{POSINT:pid}\])?: %{GREEDYDATA:auth_msg}",
+          "%{SYSLOGTIMESTAMP:syslog_ts} %{SYSLOGHOST:host_name} %{GREEDYDATA:auth_msg}"
+        ]
+      }
+    }
+    date {
+      match  => ["syslog_ts", "MMM  d HH:mm:ss", "MMM dd HH:mm:ss"]
+      target => "@timestamp"
+    }
+    mutate {
+      rename => { "proc"     => "[process][name]" }
+      rename => { "pid"      => "[process][pid]"  }
+      rename => { "auth_msg" => "message"          }
+    }
+    <span class="c"># Tag specific auth events</span>
+    if [message] =~ /Accepted (password|publickey)/ {
+      mutate { add_tag => ["ssh_login_success"] }
+    }
+    if [message] =~ /Failed password/ {
+      mutate { add_tag => ["ssh_login_failure"] }
+    }
+    if [message] =~ /sudo.*COMMAND/ {
+      mutate { add_tag => ["sudo_command"] }
+    }
+    if [message] =~ /session opened/ {
+      mutate { add_tag => ["session_open"] }
+    }
+    if [message] =~ /session closed/ {
+      mutate { add_tag => ["session_close"] }
+    }
+  }
+}</code></pre>
+
+<h3>5.3 Syslog filter — 20-syslog-filter.conf</h3>
+<pre><code>sudo nano /etc/logstash/conf.d/20-syslog-filter.conf</code></pre>
+<pre><code>filter {
+  if "syslog" in [tags] or "syslog_raw" in [tags] {
+    grok {
+      match => {
+        "message" => "%{SYSLOGTIMESTAMP:syslog_ts} %{SYSLOGHOST:host_name} %{DATA:proc}(?:\[%{POSINT:pid}\])?: %{GREEDYDATA:syslog_msg}"
+      }
+      overwrite => ["message"]
+    }
+    date {
+      match  => ["syslog_ts", "MMM  d HH:mm:ss", "MMM dd HH:mm:ss"]
+      target => "@timestamp"
+    }
+    mutate {
+      rename => { "syslog_msg" => "message"        }
+      rename => { "proc"       => "[process][name]" }
+      rename => { "pid"        => "[process][pid]"  }
+    }
+    if [process][name] in ["sshd","sudo","su","login","passwd","useradd","usermod"] {
+      mutate { add_tag => ["linux_auth"] }
+    }
+    if [process][name] in ["kernel"] {
+      mutate { add_tag => ["kernel_event"] }
+    }
+  }
+}</code></pre>
+
+<h3>5.4 Docker log filter — 30-docker-filter.conf</h3>
+<pre><code>sudo nano /etc/logstash/conf.d/30-docker-filter.conf</code></pre>
+<pre><code>filter {
+  if "docker_log" in [tags] {
+    mutate {
+      add_field => { "[event][dataset]" => "docker" }
+    }
+    if [container][name] {
+      mutate {
+        rename => { "[container][name]" => "[service][name]" }
+      }
+    }
+    <span class="c"># Try to parse JSON app logs from containers</span>
+    if [message] =~ /^\{/ {
+      json {
+        source => "message"
+        target => "parsed"
+        skip_on_invalid_json => true
+      }
+    }
+  }
+}</code></pre>
+
+<h3>5.5 Output — 99-output.conf</h3>
+<pre><code>sudo nano /etc/logstash/conf.d/99-output.conf</code></pre>
+<pre><code>output {
+  if "linux_auth" in [tags] {
+    elasticsearch {
+      hosts    => ["http://localhost:9200"]
+      user     => "logstash_internal"
+      password => "LogstashLab@2024"
+      index    => "auth-logs-%{+YYYY.MM.dd}"
+    }
+  } else if "syslog" in [tags] or "kernel_event" in [tags] {
+    elasticsearch {
+      hosts    => ["http://localhost:9200"]
+      user     => "logstash_internal"
+      password => "LogstashLab@2024"
+      index    => "syslog-%{+YYYY.MM.dd}"
+    }
+  } else if "docker_log" in [tags] {
+    elasticsearch {
+      hosts    => ["http://localhost:9200"]
+      user     => "logstash_internal"
+      password => "LogstashLab@2024"
+      index    => "docker-logs-%{+YYYY.MM.dd}"
+    }
+  } else if "journal" in [tags] {
+    elasticsearch {
+      hosts    => ["http://localhost:9200"]
+      user     => "logstash_internal"
+      password => "LogstashLab@2024"
+      index    => "journal-logs-%{+YYYY.MM.dd}"
+    }
+  } else if "app_log" in [tags] {
+    elasticsearch {
+      hosts    => ["http://localhost:9200"]
+      user     => "logstash_internal"
+      password => "LogstashLab@2024"
+      index    => "app-logs-%{+YYYY.MM.dd}"
+    }
+  } else {
+    elasticsearch {
+      hosts    => ["http://localhost:9200"]
+      user     => "logstash_internal"
+      password => "LogstashLab@2024"
+      index    => "misc-logs-%{+YYYY.MM.dd}"
+    }
+  }
+}</code></pre>
+
+<div class="step-header"><div class="step-badge">6</div><div class="step-title">Test and start Logstash</div></div>
+<pre><code><span class="c"># Test configuration syntax</span>
+sudo -u logstash /usr/share/logstash/bin/logstash \
+  --path.settings /etc/logstash \
+  --config.test_and_exit
+
+<span class="c"># If test passes — start the service</span>
+sudo systemctl start logstash
+sudo systemctl status logstash --no-pager</code></pre>
+
+<div class="warn">
+  <strong>Warning — startup time</strong>
+  Logstash takes 60–90 seconds to fully start. If <code>systemctl status</code> shows "activating", wait and check again.
+</div>
+
+
+<!-- ═══════════════════════════════ SECTION 6 ═══════════════════════════════ -->
+<div class="page-break"></div>
+<h2>6. Install Kibana</h2>
+
+<div class="step-header"><div class="step-badge">1</div><div class="step-title">Install the package</div></div>
+<pre><code>sudo apt-get install -y kibana=8.13.4
+sudo apt-mark hold kibana</code></pre>
+
+<div class="step-header"><div class="step-badge">2</div><div class="step-title">Configure Kibana</div></div>
+<pre><code>sudo nano /etc/kibana/kibana.yml</code></pre>
+<pre><code>server.port: 5601
+server.host: "0.0.0.0"
+server.name: "elk-desktop"
+elasticsearch.hosts: ["http://localhost:9200"]
+elasticsearch.username: "kibana_system"
+elasticsearch.password: "KibanaLab@2024"</code></pre>
+
+<div class="step-header"><div class="step-badge">3</div><div class="step-title">Set the kibana_system password</div></div>
+<pre><code>curl -u elastic:ElkLab@2024 -X POST \
+  http://localhost:9200/_security/user/kibana_system/_password \
+  -H "Content-Type: application/json" \
+  -d '{"password": "KibanaLab@2024"}'</code></pre>
+
+<div class="step-header"><div class="step-badge">4</div><div class="step-title">Start Kibana</div></div>
+<pre><code>sudo systemctl enable kibana
+sudo systemctl start kibana
+
+<span class="c"># Kibana takes 2-3 minutes to start — watch the log</span>
+sudo journalctl -fu kibana</code></pre>
+
+<p>Wait until you see: <strong><code>Kibana is now available</code></strong> in the journal, then open:</p>
+<pre><code>http://localhost:5601     Login: elastic / ElkLab@2024</code></pre>
+
+<div class="creds">
+  <div class="cred-card">
+    <h4>Kibana / Elasticsearch</h4>
+    URL: <code>http://localhost:5601</code><br>
+    User: <code>elastic</code><br>
+    Pass: <code>ElkLab@2024</code>
+  </div>
+  <div class="cred-card">
+    <h4>Elasticsearch API</h4>
+    URL: <code>http://localhost:9200</code><br>
+    User: <code>elastic</code><br>
+    Pass: <code>ElkLab@2024</code>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════ SECTION 7 ═══════════════════════════════ -->
+<h2>7. Install Filebeat</h2>
+<p>Filebeat is the lightweight log shipper. It reads log files and sends them to Logstash.</p>
+
+<div class="step-header"><div class="step-badge">1</div><div class="step-title">Install the package</div></div>
+<pre><code>sudo apt-get install -y filebeat=8.13.4
+sudo apt-mark hold filebeat</code></pre>
+
+<div class="step-header"><div class="step-badge">2</div><div class="step-title">Write the Filebeat config</div></div>
+<pre><code>sudo nano /etc/filebeat/filebeat.yml</code></pre>
+
+<p>Replace the entire default config with this:</p>
+<pre><code>filebeat.inputs:
+
+  <span class="c"># ── System logs ─────────────────────────────</span>
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/syslog
+      - /var/log/messages
+    tags: ["syslog"]
+    fields:
+      log_type: syslog
+      host_type: linux-desktop
+    fields_under_root: false
+    multiline.pattern: '^[A-Z][a-z]{2}\s'
+    multiline.negate: true
+    multiline.match: after
+
+  <span class="c"># ── Authentication logs ─────────────────────</span>
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/auth.log
+      - /var/log/secure
+    tags: ["linux_auth"]
+    fields:
+      log_type: auth
+      host_type: linux-desktop
+    fields_under_root: false
+
+  <span class="c"># ── Kernel logs ─────────────────────────────</span>
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/kern.log
+    tags: ["syslog", "kernel_event"]
+    fields:
+      log_type: kernel
+    fields_under_root: false
+
+  <span class="c"># ── Application logs (add your app paths here)</span>
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/nginx/*.log
+      - /var/log/apache2/*.log
+      - /var/log/app/*.log
+    tags: ["app_log"]
+    fields:
+      log_type: application
+    fields_under_root: false
+    ignore_older: 24h
+
+  <span class="c"># ── Docker container logs ────────────────────</span>
+  - type: container
+    enabled: true
+    paths:
+      - /var/lib/docker/containers/*/*.log
+    stream: all
+    tags: ["docker_log"]
+    fields:
+      log_type: docker
+    fields_under_root: false
+    processors:
+      - add_docker_metadata:
+          host: "unix:///var/run/docker.sock"
+
+  <span class="c"># ── systemd journal ──────────────────────────</span>
+  - type: journald
+    enabled: true
+    id: journald-local
+    tags: ["journal"]
+    fields:
+      log_type: journal
+    fields_under_root: false
+
+<span class="c"># ── Processors ──────────────────────────────────</span>
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_locale: ~
+
+<span class="c"># ── Output: send to Logstash ─────────────────────</span>
+output.logstash:
+  hosts: ["localhost:5044"]
+
+<span class="c"># ── Kibana (for dashboard setup) ─────────────────</span>
+setup.kibana:
+  host: "localhost:5601"
+  username: "elastic"
+  password: "ElkLab@2024"
+
+logging.level: info
+logging.to_files: false</code></pre>
+
+<div class="step-header"><div class="step-badge">3</div><div class="step-title">Fix permissions and add filebeat to Docker group</div></div>
+<pre><code><span class="c"># Fix config file permissions (filebeat security requirement)</span>
+sudo chmod go-w /etc/filebeat/filebeat.yml
+sudo chown root:root /etc/filebeat/filebeat.yml
+
+<span class="c"># Allow Filebeat to read Docker logs (if Docker is installed)</span>
+sudo usermod -aG docker filebeat
+
+<span class="c"># Allow Filebeat to read system logs</span>
+sudo usermod -aG adm filebeat</code></pre>
+
+<div class="step-header"><div class="step-badge">4</div><div class="step-title">Test config and start Filebeat</div></div>
+<pre><code><span class="c"># Validate config</span>
+sudo filebeat test config -c /etc/filebeat/filebeat.yml
+
+<span class="c"># Test connection to Logstash</span>
+sudo filebeat test output -c /etc/filebeat/filebeat.yml
+
+<span class="c"># Enable and start</span>
+sudo systemctl enable filebeat
+sudo systemctl start filebeat
+sudo systemctl status filebeat --no-pager</code></pre>
+
+
+<!-- ═══════════════════════════════ SECTION 8 ═══════════════════════════════ -->
+<div class="page-break"></div>
+<h2>8. Configure All Log Sources</h2>
+
+<h3>8.1 Logs collected automatically (no extra config needed)</h3>
+<table>
+  <tr><th>Log Type</th><th>File Path</th><th>Tag in ELK</th></tr>
+  <tr><td>System log</td><td>/var/log/syslog</td><td>syslog</td></tr>
+  <tr><td>Auth / SSH / sudo</td><td>/var/log/auth.log</td><td>linux_auth</td></tr>
+  <tr><td>Kernel messages</td><td>/var/log/kern.log</td><td>kernel_event</td></tr>
+  <tr><td>Docker containers</td><td>/var/lib/docker/containers/*/*.log</td><td>docker_log</td></tr>
+  <tr><td>systemd journal</td><td>journald socket</td><td>journal</td></tr>
+  <tr><td>Nginx / Apache</td><td>/var/log/nginx/*.log</td><td>app_log</td></tr>
+</table>
+
+<h3>8.2 Add a custom application log</h3>
+<p>To monitor a log file from your own application, edit <code>/etc/filebeat/filebeat.yml</code>
+and add a new input block:</p>
+<pre><code>  - type: log
+    enabled: true
+    paths:
+      - /home/youruser/myapp/logs/*.log    <span class="c"># ← change to your app's log path</span>
+    tags: ["app_log"]
+    fields:
+      app_name: myapp
+      log_type: application
+    fields_under_root: false</code></pre>
+<p>Then restart Filebeat: <code>sudo systemctl restart filebeat</code></p>
+
+<h3>8.3 Enable auditd (advanced — system call auditing)</h3>
+<pre><code><span class="c"># Install auditd</span>
+sudo apt-get install -y auditd audispd-plugins
+
+<span class="c"># Add rules to monitor sensitive files and commands</span>
+sudo auditctl -w /etc/passwd   -p wa -k user_modify
+sudo auditctl -w /etc/shadow   -p wa -k user_modify
+sudo auditctl -w /etc/sudoers  -p wa -k sudo_modify
+sudo auditctl -w /bin/su       -p x  -k privilege_escalation
+
+<span class="c"># Make rules permanent</span>
+sudo auditctl -l | sudo tee /etc/audit/rules.d/elk-lab.rules
+sudo systemctl restart auditd</code></pre>
+
+<h3>8.4 Monitor a PostgreSQL log</h3>
+<pre><code><span class="c"># Enable PostgreSQL logging</span>
+sudo nano /etc/postgresql/*/main/postgresql.conf</code></pre>
+<p>Set these values:</p>
+<pre><code>log_destination = 'stderr'
+logging_collector = on
+log_directory = 'log'
+log_filename = 'postgresql-%Y-%m-%d.log'
+log_line_prefix = '%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h '
+log_connections = on
+log_disconnections = on
+log_duration = off
+log_statement = 'ddl'</code></pre>
+<p>Then add the Postgres log path to Filebeat:</p>
+<pre><code>  - type: log
+    enabled: true
+    paths:
+      - /var/lib/postgresql/*/main/log/postgresql-*.log
+    tags: ["app_log"]
+    fields: { app_name: postgresql, log_type: database }
+    fields_under_root: false</code></pre>
+
+
+<!-- ═══════════════════════════════ SECTION 9 ═══════════════════════════════ -->
+<h2>9. Create Kibana Index Patterns &amp; Dashboards</h2>
+
+<h3>9.1 Create index patterns via the API</h3>
+<p>Run these curl commands once Kibana is running. They create all the data views automatically.</p>
+<pre><code>KIBANA="http://localhost:5601"
+AUTH="elastic:ElkLab@2024"
+H='-H "kbn-xsrf: true" -H "Content-Type: application/json"'
+
+for PATTERN in "auth-logs-*" "syslog-*" "docker-logs-*" "app-logs-*" "journal-logs-*" "misc-logs-*"; do
+  curl -s -u "$AUTH" -X POST "$KIBANA/api/data_views/data_view" \
+    -H "kbn-xsrf: true" -H "Content-Type: application/json" \
+    -d "{\"data_view\":{\"title\":\"$PATTERN\",\"timeFieldName\":\"@timestamp\"}}"
+  echo " → Created: $PATTERN"
+done</code></pre>
+
+<h3>9.2 Create index patterns in Kibana UI (alternative)</h3>
+<ol>
+  <li>Open <strong>Kibana → Stack Management → Data Views → Create data view</strong></li>
+  <li>Enter pattern (e.g. <code>auth-logs-*</code>) and set time field to <code>@timestamp</code></li>
+  <li>Repeat for each pattern in the table below</li>
+</ol>
+<table>
+  <tr><th>Pattern</th><th>Time field</th><th>Index in Discover</th></tr>
+  <tr><td>auth-logs-*</td><td>@timestamp</td><td>SSH logins, sudo, PAM</td></tr>
+  <tr><td>syslog-*</td><td>@timestamp</td><td>System + kernel events</td></tr>
+  <tr><td>docker-logs-*</td><td>@timestamp</td><td>Container stdout/stderr</td></tr>
+  <tr><td>app-logs-*</td><td>@timestamp</td><td>Nginx, PostgreSQL, custom apps</td></tr>
+  <tr><td>journal-logs-*</td><td>@timestamp</td><td>systemd journal</td></tr>
+  <tr><td>misc-logs-*</td><td>@timestamp</td><td>Everything else</td></tr>
+</table>
+
+<h3>9.3 Recommended dashboards to build in Kibana</h3>
+
+<h4>Authentication &amp; Security Dashboard (auth-logs-*)</h4>
+<table>
+  <tr><th>Panel</th><th>Type</th><th>Filter / Field</th></tr>
+  <tr><td>Login attempts over time</td><td>Date histogram</td><td>tags: linux_auth</td></tr>
+  <tr><td>SSH success vs failure</td><td>Pie chart</td><td>tags: ssh_login_success vs ssh_login_failure</td></tr>
+  <tr><td>Failed logins by source IP</td><td>Data table</td><td>tags: ssh_login_failure, group by client.ip</td></tr>
+  <tr><td>sudo commands</td><td>Table</td><td>tags: sudo_command</td></tr>
+  <tr><td>Active sessions</td><td>Count</td><td>tags: session_open</td></tr>
+</table>
+
+<h4>System Overview Dashboard (syslog-*)</h4>
+<table>
+  <tr><th>Panel</th><th>Type</th><th>Filter / Field</th></tr>
+  <tr><td>Log volume over time</td><td>Date histogram</td><td>all events</td></tr>
+  <tr><td>Top processes</td><td>Bar chart</td><td>process.name terms</td></tr>
+  <tr><td>Kernel events</td><td>Table</td><td>tags: kernel_event</td></tr>
+  <tr><td>Error log count</td><td>Metric</td><td>message: *error* OR *fail*</td></tr>
+</table>
+
+<h4>Docker Dashboard (docker-logs-*)</h4>
+<table>
+  <tr><th>Panel</th><th>Type</th><th>Filter / Field</th></tr>
+  <tr><td>Logs by container</td><td>Bar chart</td><td>service.name terms</td></tr>
+  <tr><td>Error logs</td><td>Table</td><td>message: *error* OR *ERROR*</td></tr>
+  <tr><td>Log volume</td><td>Date histogram</td><td>all</td></tr>
+</table>
+
+<h3>9.4 Useful KQL queries for Discover</h3>
+<table>
+  <tr><th>Purpose</th><th>Query</th><th>Index</th></tr>
+  <tr><td>SSH brute force attempts</td><td><code>tags: ssh_login_failure</code></td><td>auth-logs-*</td></tr>
+  <tr><td>Successful SSH logins</td><td><code>tags: ssh_login_success</code></td><td>auth-logs-*</td></tr>
+  <tr><td>sudo usage</td><td><code>tags: sudo_command</code></td><td>auth-logs-*</td></tr>
+  <tr><td>Kernel OOM events</td><td><code>message: "Out of memory"</code></td><td>syslog-*</td></tr>
+  <tr><td>Docker errors</td><td><code>tags: docker_log AND message: *error*</code></td><td>docker-logs-*</td></tr>
+  <tr><td>Grok parse failures</td><td><code>tags: _grokparsefailure</code></td><td>any</td></tr>
+  <tr><td>Failed systemd services</td><td><code>message: "failed" AND tags: journal</code></td><td>journal-logs-*</td></tr>
+</table>
+
+
+<!-- ═══════════════════════════════ SECTION 10 ═══════════════════════════════ -->
+<div class="page-break"></div>
+<h2>10. Verify Everything is Working</h2>
+
+<h3>10.1 Check all services are running</h3>
+<pre><code>sudo systemctl status elasticsearch --no-pager
+sudo systemctl status logstash      --no-pager
+sudo systemctl status kibana        --no-pager
+sudo systemctl status filebeat      --no-pager</code></pre>
+
+<p>All four should show <strong>active (running)</strong>.</p>
+
+<h3>10.2 Check Elasticsearch has data</h3>
+<pre><code><span class="c"># List all indices</span>
+curl -s -u elastic:ElkLab@2024 \
+  "http://localhost:9200/_cat/indices?h=index,docs.count,health&s=index&v"</code></pre>
+
+<p>Expected output (after a few minutes):</p>
+<pre><code>health status index                    docs.count
+yellow open   auth-logs-2026.06.13        1432
+yellow open   journal-logs-2026.06.13     3891
+yellow open   syslog-2026.06.13            289</code></pre>
+
+<h3>10.3 Check Logstash pipeline stats</h3>
+<pre><code>curl -s http://localhost:9600/_node/stats | python3 -c \
+  "import sys,json; d=json.load(sys.stdin); e=d['pipelines']['main']['events']; \
+   print(f'Events in: {e[\"in\"]}  out: {e[\"out\"]}  filtered: {e[\"filtered\"]}')"</code></pre>
+
+<h3>10.4 Trigger a test event and find it in Kibana</h3>
+<pre><code><span class="c"># Generate a test sudo event</span>
+sudo ls /root
+
+<span class="c"># Generate a test SSH event (from another terminal)</span>
+ssh localhost
+
+<span class="c"># Wait 10 seconds, then check if it arrived in Elasticsearch</span>
+curl -s -u elastic:ElkLab@2024 \
+  "http://localhost:9200/auth-logs-*/_count?q=tags:sudo_command" \
+  | python3 -c "import sys,json; print('sudo events:', json.load(sys.stdin)['count'])"</code></pre>
+
+<h3>10.5 Open Kibana and explore</h3>
+<ol>
+  <li>Open <strong>http://localhost:5601</strong> — login as <code>elastic</code> / <code>ElkLab@2024</code></li>
+  <li>Go to <strong>Discover</strong> — select <code>auth-logs-*</code></li>
+  <li>Set time range to <strong>Last 1 hour</strong></li>
+  <li>You should see SSH and sudo events from your system</li>
+</ol>
+
+
+<!-- ═══════════════════════════════ SECTION 11 ═══════════════════════════════ -->
+<h2>11. Day-to-Day Operations</h2>
+
+<h3>Service management</h3>
+<table>
+  <tr><th>Command</th><th>Purpose</th></tr>
+  <tr><td><code>sudo systemctl start|stop|restart elasticsearch</code></td><td>Manage Elasticsearch</td></tr>
+  <tr><td><code>sudo systemctl start|stop|restart logstash</code></td><td>Manage Logstash</td></tr>
+  <tr><td><code>sudo systemctl start|stop|restart kibana</code></td><td>Manage Kibana</td></tr>
+  <tr><td><code>sudo systemctl start|stop|restart filebeat</code></td><td>Manage Filebeat</td></tr>
+  <tr><td><code>sudo journalctl -fu logstash</code></td><td>Watch Logstash logs live</td></tr>
+  <tr><td><code>sudo journalctl -fu filebeat</code></td><td>Watch Filebeat logs live</td></tr>
+</table>
+
+<h3>Useful Elasticsearch commands</h3>
+<pre><code><span class="c"># Cluster health</span>
+curl -s -u elastic:ElkLab@2024 http://localhost:9200/_cluster/health?pretty
+
+<span class="c"># List all indices with doc counts</span>
+curl -s -u elastic:ElkLab@2024 "http://localhost:9200/_cat/indices?v&s=index"
+
+<span class="c"># Delete old indices (e.g. last month's syslog)</span>
+curl -u elastic:ElkLab@2024 -X DELETE \
+  http://localhost:9200/syslog-2026.05.*
+
+<span class="c"># Count documents in an index</span>
+curl -s -u elastic:ElkLab@2024 \
+  "http://localhost:9200/auth-logs-*/_count" | python3 -m json.tool
+
+<span class="c"># Disk usage by index</span>
+curl -s -u elastic:ElkLab@2024 \
+  "http://localhost:9200/_cat/indices?h=index,store.size&s=store.size:desc&v"</code></pre>
+
+<h3>Pipeline hot-reload</h3>
+<p>Logstash reloads pipeline files automatically every 30 seconds. After editing any
+<code>.conf</code> file in <code>/etc/logstash/conf.d/</code>, just wait 30 seconds — no restart needed.</p>
+
+<h3>Adding a new log source</h3>
+<ol>
+  <li>Edit <code>/etc/filebeat/filebeat.yml</code> — add a new input block</li>
+  <li>Run <code>sudo filebeat test config</code> to validate</li>
+  <li>Run <code>sudo systemctl restart filebeat</code></li>
+  <li>Add a matching filter in <code>/etc/logstash/conf.d/</code> if needed</li>
+  <li>Add a new output route in <code>99-output.conf</code> if needed</li>
+  <li>Create a new data view in Kibana for the new index pattern</li>
+</ol>
+
+
+<!-- ═══════════════════════════════ SECTION 12 ═══════════════════════════════ -->
+<div class="page-break"></div>
+<h2>12. Troubleshooting</h2>
+
+<h3>Elasticsearch won't start</h3>
+<pre><code><span class="c"># Read the startup error</span>
+sudo journalctl -u elasticsearch --since "5 minutes ago" --no-pager
+
+<span class="c"># Most common fix — vm.max_map_count too low</span>
+sudo sysctl -w vm.max_map_count=262144
+
+<span class="c"># Check disk space — Elasticsearch refuses to start if disk &gt;95% full</span>
+df -h /var/lib/elasticsearch</code></pre>
+
+<h3>Logstash pipeline fails to load</h3>
+<pre><code><span class="c"># Test config syntax — shows exact error line</span>
+sudo -u logstash /usr/share/logstash/bin/logstash \
+  --path.settings /etc/logstash --config.test_and_exit
+
+<span class="c"># Watch startup log</span>
+sudo journalctl -u logstash -f --no-pager</code></pre>
+<div class="warn">
+  <strong>Warning — semicolons in config</strong>
+  Logstash config does NOT support semicolons as statement separators. Each setting must be on its own line. Wrong: <code>tcp { port => 5000; codec => json }</code> — this will fail.
+</div>
+
+<h3>Filebeat not sending logs</h3>
+<pre><code><span class="c"># Test connection to Logstash</span>
+sudo filebeat test output -c /etc/filebeat/filebeat.yml
+
+<span class="c"># Check if Logstash port is listening</span>
+nc -zv localhost 5044
+
+<span class="c"># Check permissions on filebeat.yml</span>
+ls -la /etc/filebeat/filebeat.yml
+<span class="c"># Must be: -rw------- or -rw-r----- (not world-writable)</span>
+
+<span class="c"># Check Filebeat can read the log files</span>
+sudo -u filebeat cat /var/log/auth.log | head -3</code></pre>
+
+<h3>No data in Kibana</h3>
+<pre><code><span class="c"># 1. Check index exists in Elasticsearch</span>
+curl -s -u elastic:ElkLab@2024 \
+  "http://localhost:9200/_cat/indices?v" | grep auth-logs
+
+<span class="c"># 2. Check Logstash pipeline event count</span>
+curl -s http://localhost:9600/_node/stats | grep '"in"'
+
+<span class="c"># 3. Look for grok failures (unparsed events)</span>
+curl -s -u elastic:ElkLab@2024 \
+  "http://localhost:9200/misc-logs-*/_count" | python3 -m json.tool
+
+<span class="c"># 4. Check time range in Kibana — set to "Last 1 hour" or "Today"</span></code></pre>
+
+<h3>Kibana "Elasticsearch is not available"</h3>
+<pre><code><span class="c"># Check if Elasticsearch is running and accepting connections</span>
+curl -u elastic:ElkLab@2024 http://localhost:9200/_cluster/health
+
+<span class="c"># Check the kibana_system password matches kibana.yml</span>
+curl -u elastic:ElkLab@2024 -X POST \
+  http://localhost:9200/_security/user/kibana_system/_password \
+  -H "Content-Type: application/json" \
+  -d '{"password": "KibanaLab@2024"}'
+
+sudo systemctl restart kibana</code></pre>
+
+<h3>High memory / Elasticsearch OOM killed</h3>
+<pre><code><span class="c"># Reduce JVM heap</span>
+sudo nano /etc/elasticsearch/jvm.options.d/heap.options
+<span class="c"># Reduce -Xms and -Xmx values, e.g. -Xms1g / -Xmx1g</span>
+sudo systemctl restart elasticsearch</code></pre>
+
+<h3>Quick health check — run all at once</h3>
+<pre><code>echo "=== Service Status ===" && \
+  for svc in elasticsearch logstash kibana filebeat; do
+    state=$(systemctl is-active $svc)
+    printf "  %-15s %s\n" $svc $state
+  done && \
+echo "" && echo "=== Elasticsearch ===" && \
+  curl -s -u elastic:ElkLab@2024 \
+    "http://localhost:9200/_cluster/health" \
+    | python3 -c "import sys,json; h=json.load(sys.stdin); \
+      print(f'  status={h[\"status\"]} nodes={h[\"number_of_nodes\"]} shards_active={h[\"active_shards\"]}')" && \
+echo "" && echo "=== Indices ===" && \
+  curl -s -u elastic:ElkLab@2024 \
+    "http://localhost:9200/_cat/indices?h=index,docs.count&s=index" \
+    | grep -E "auth|syslog|docker|journal|app"</code></pre>
+
+
+<!-- ═══════════════════════════════ PASSWORDS ═══════════════════════════════ -->
+<h2>Credential Reference</h2>
+<table>
+  <tr><th>Account</th><th>Username</th><th>Password</th><th>Used for</th></tr>
+  <tr><td>Elasticsearch superuser</td><td>elastic</td><td>ElkLab@2024</td><td>Kibana login, API admin</td></tr>
+  <tr><td>Kibana system user</td><td>kibana_system</td><td>KibanaLab@2024</td><td>Kibana → ES connection</td></tr>
+  <tr><td>Logstash writer</td><td>logstash_internal</td><td>LogstashLab@2024</td><td>Logstash → ES indexing</td></tr>
+</table>
+<div class="warn">
+  <strong>Change these passwords before using on any shared or public network.</strong>
+  These are lab defaults. Edit the values in all config files if you change them.
+</div>
+
+<!-- ── Footer ──────────────────────────────────────────────────────── -->
+<div style="margin-top:40px; padding-top:14px; border-top:1px solid #ccc;
+            font-size:11px; color:#888; text-align:center;">
+  ELK Stack Linux Desktop Guide · Version 1.0 · 2026-06-13 · ELK 8.13.4
+</div>
+
+</body>
+</html>

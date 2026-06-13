@@ -1,0 +1,27 @@
+﻿# Filebeat agent running in Docker on THIS Windows PC
+# Collects: Windows Event Logs (via named pipe), IIS logs, app logs
+# Run from this directory:
+#   docker compose --env-file ..\..\\.env up -d
+
+version: "3.8"
+
+services:
+
+  filebeat-windows:
+    image: docker.elastic.co/beats/filebeat:${ELK_VERSION}
+    container_name: filebeat-windows-agent
+    user: root
+    command: ["filebeat", "-e", "--strict.perms=false"]
+    volumes:
+      - ./filebeat-windows-agent.yml:/usr/share/filebeat/filebeat.yml:ro
+      # Mount Windows log paths into the container
+      - C:\Windows\System32\winevt\Logs:/windows-logs:ro
+      - C:\Windows\Logs:/winlogs:ro
+    environment:
+      SIEM_HOST: ${SIEM_HOST}
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
+      KIBANA_HOST_PORT: ${KIBANA_HOST_PORT}
+      LOGSTASH_BEATS_PORT: ${LOGSTASH_BEATS_PORT}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

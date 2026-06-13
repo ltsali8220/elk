@@ -1,0 +1,79 @@
+﻿# Filebeat - Linux Desktop / Server agent
+# ── How to deploy ──────────────────────────────────────────
+# 1. On this Windows PC run:  ipconfig  -> note your LAN IP
+# 2. Set SIEM_HOST in ELK/.env to that LAN IP
+# 3. On the Linux machine run the one-liner install below,
+#    then copy this file to /etc/filebeat/filebeat.yml
+#    replacing SIEM_IP with your actual Windows PC LAN IP.
+#
+# Quick install on Linux (run as root):
+#   curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch | gpg --dearmor -o /usr/share/keyrings/elastic.gpg
+#   echo "deb [signed-by=/usr/share/keyrings/elastic.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main" > /etc/apt/sources.list.d/elastic-8.x.list
+#   apt update && apt install -y filebeat=8.13.4
+#   cp filebeat-linux.yml /etc/filebeat/filebeat.yml   # replace SIEM_IP first
+#   systemctl enable --now filebeat
+
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/syslog
+      - /var/log/messages
+    fields:
+      log_type: syslog
+      host_type: linux-vm
+    fields_under_root: false
+    tags: ["syslog"]
+
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/auth.log
+      - /var/log/secure
+    fields:
+      log_type: auth
+      host_type: linux-vm
+    fields_under_root: false
+    tags: ["linux_auth"]
+
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/kern.log
+    fields:
+      log_type: kernel
+    fields_under_root: false
+    tags: ["kernel"]
+
+  - type: container
+    enabled: true
+    paths:
+      - /var/lib/docker/containers/*/*.log
+    stream: all
+    fields:
+      log_source: docker
+    fields_under_root: false
+    tags: ["docker_log"]
+    processors:
+      - add_docker_metadata:
+          host: "unix:///var/run/docker.sock"
+
+filebeat.modules:
+  - module: system
+    syslog: { enabled: true }
+    auth:   { enabled: true }
+
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+
+output.logstash:
+  hosts: ["SIEM_IP:5044"]        # ← replace SIEM_IP with your Windows PC LAN IP
+
+setup.kibana:
+  host: "SIEM_IP:5602"           # ← replace SIEM_IP with your Windows PC LAN IP
+  username: "elastic"
+  password: "ElkLab@2024"        # ← replace if you changed ELASTIC_PASSWORD in .env
+
+logging.level: info
+logging.to_files: false

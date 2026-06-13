@@ -1,0 +1,50 @@
+﻿filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - /app-logs/app.log
+    fields:
+      log_type: webapp
+      app_name: flask-webapp
+    fields_under_root: false
+    json.keys_under_root: true
+    json.add_error_key: true
+    json.message_key: message
+    tags: ["webapp"]
+
+  - type: log
+    enabled: true
+    paths:
+      - /app-logs/access.log
+    fields:
+      log_type: webapp
+      log_subtype: access
+    fields_under_root: false
+    tags: ["webapp", "access_log"]
+
+  - type: log
+    enabled: true
+    paths:
+      - /app-logs/error.log
+    fields:
+      log_type: webapp
+      log_subtype: error
+    fields_under_root: false
+    tags: ["webapp", "error_log"]
+
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_docker_metadata:
+      host: "unix:///var/run/docker.sock"
+
+output.logstash:
+  hosts: ["${LOGSTASH_HOST}:5044"]
+
+setup.kibana:
+  host: "${KIBANA_HOST}:5601"
+  username: "elastic"
+  password: "${ELASTIC_PASSWORD}"
+
+logging.level: info
+logging.to_files: false

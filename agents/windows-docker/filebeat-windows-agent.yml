@@ -1,0 +1,49 @@
+﻿# Filebeat config for the Windows PC Docker agent
+# Reads Windows log files mounted into the container
+
+filebeat.inputs:
+
+  # Windows Security / System / Application event logs (exported as .evtx files)
+  # Note: for full Windows Event Log support, use Winlogbeat (native service) instead.
+  # This container reads plain text / structured log files from Windows.
+
+  # Windows Defender logs
+  - type: log
+    enabled: true
+    paths:
+      - /windows-logs/Microsoft-Windows-Windows Defender%4Operational.evtx
+    fields:
+      log_type: windows_defender
+      host_type: windows
+      host_name: ${HOSTNAME}
+    fields_under_root: false
+    tags: ["windows_app", "windows_defender"]
+
+  # Windows system/application plain logs
+  - type: log
+    enabled: true
+    paths:
+      - /winlogs/*.log
+      - /winlogs/**/*.log
+    fields:
+      log_type: windows_app_log
+      host_type: windows
+      host_name: ${HOSTNAME}
+    fields_under_root: false
+    tags: ["windows_app"]
+    ignore_older: 24h
+
+processors:
+  - add_host_metadata: ~
+
+# Logstash is running on the same Windows PC - use host.docker.internal
+output.logstash:
+  hosts: ["host.docker.internal:5044"]
+
+setup.kibana:
+  host: "host.docker.internal:5602"
+  username: "elastic"
+  password: "${ELASTIC_PASSWORD}"
+
+logging.level: info
+logging.to_files: false

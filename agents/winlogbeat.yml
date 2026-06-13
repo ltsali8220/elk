@@ -1,0 +1,75 @@
+﻿# Winlogbeat - Windows Event Log collector
+# ── RECOMMENDED for Windows Event Logs (Security, System, PowerShell) ──
+#
+# Install as a native Windows service (NOT in Docker - Docker cannot
+# access Windows Event Log API):
+#
+#   1. Download: https://artifacts.elastic.co/downloads/beats/winlogbeat/winlogbeat-8.13.4-windows-x86_64.zip
+#   2. Extract to: C:\Program Files\Winlogbeat\
+#   3. Edit winlogbeat.yml - set SIEM_IP to your SIEM Windows PC LAN IP
+#      (same machine = 127.0.0.1, remote machine = its LAN IP)
+#   4. Open PowerShell as Administrator in that folder:
+#        .\install-service-winlogbeat.ps1
+#        Start-Service winlogbeat
+#
+# Check SIEM_HOST in ELK/.env for the correct IP.
+
+winlogbeat.event_logs:
+
+  - name: Application
+    ignore_older: 72h
+
+  - name: System
+    ignore_older: 72h
+
+  - name: Security
+    ignore_older: 72h
+    event_id: >-
+      4624,4625,4634,4647,4648,4649,
+      4672,4673,4674,
+      4688,4689,
+      4697,4698,4699,4700,4701,4702,
+      4720,4722,4723,4724,4725,4726,4727,4728,4729,4730,
+      4732,4756,4767,4771,4776,4778,4779,
+      7036,7040
+
+  - name: Microsoft-Windows-PowerShell/Operational
+    ignore_older: 72h
+    event_id: 400,403,600,800,4103,4104,4105,4106
+
+  - name: Microsoft-Windows-Windows Defender/Operational
+    ignore_older: 72h
+    event_id: 1006,1007,1008,1009,1013,1015,1116,1117,1118,1119
+
+  - name: Microsoft-Windows-TerminalServices-LocalSessionManager/Operational
+    ignore_older: 72h
+
+processors:
+  - add_host_metadata: ~
+  - script:
+      lang: javascript
+      id: add_host_type
+      source: >
+        function process(event) {
+          event.Put("fields.log_type", "winlog");
+          event.Put("fields.host_type", "windows");
+        }
+
+# ── Set SIEM_IP below ──────────────────────────────────────────────────────
+# Same machine as SIEM: use 127.0.0.1
+# Remote machine:       use the SIEM Windows PC LAN IP (SIEM_HOST in .env)
+output.logstash:
+  hosts: ["SIEM_IP:5044"]
+
+setup.kibana:
+  host: "SIEM_IP:5602"
+  username: "elastic"
+  password: "ElkLab@2024"
+
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: C:\ProgramData\winlogbeat\logs
+  name: winlogbeat
+  keepfiles: 7
+  permissions: 0600

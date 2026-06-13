@@ -1,0 +1,75 @@
+﻿version: "3.8"
+
+services:
+
+  db:
+    image: postgres:15-alpine
+    container_name: db
+    environment:
+      POSTGRES_DB:       ${DB_NAME}
+      POSTGRES_USER:     ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./app/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      webapp-net:
+        ipv4_address: ${DB_IP}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  webapp:
+    build: ./app
+    container_name: webapp
+    environment:
+      DB_HOST:    ${DB_IP}
+      DB_NAME:    ${DB_NAME}
+      DB_USER:    ${DB_USER}
+      DB_PASS:    ${DB_PASSWORD}
+      SECRET_KEY: ${SECRET_KEY}
+    volumes:
+      - app-logs:/app-logs
+    networks:
+      webapp-net:
+        ipv4_address: ${WEBAPP_IP}
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:${ELK_VERSION}
+    container_name: filebeat
+    user: root
+    command: ["filebeat", "-e", "--strict.perms=false"]
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - app-logs:/app-logs:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      LOGSTASH_HOST: ${LOGSTASH_IP}
+      KIBANA_HOST:   ${KIBANA_IP}
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD}
+    networks:
+      webapp-net:
+        ipv4_address: ${FILEBEAT_IP}
+      elk-net: {}
+    depends_on:
+      - webapp
+    restart: unless-stopped
+
+volumes:
+  db-data:
+  app-logs:
+
+networks:
+  webapp-net:
+    external: true
+  elk-net:
+    external: true

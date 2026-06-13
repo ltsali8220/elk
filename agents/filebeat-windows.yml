@@ -1,0 +1,44 @@
+﻿# Filebeat - Windows Desktop / Laptop agent
+# Copy to: C:\Program Files\Filebeat\filebeat.yml
+# Replace __ELK_VM_IP__ and __ELASTIC_PASSWORD__ before deploying
+
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - C:\Windows\Logs\*.log
+      - C:\Windows\Logs\CBS\*.log
+    fields:
+      log_type: windows-app-log
+      host_type: windows
+    fields_under_root: false
+    tags: ["windows_app"]
+
+  - type: log
+    enabled: false
+    paths:
+      - C:\inetpub\logs\LogFiles\W3SVC*\*.log
+    fields:
+      log_type: iis_access
+      host_type: windows
+    fields_under_root: false
+    tags: ["iis"]
+
+processors:
+  - add_host_metadata: ~
+
+output.logstash:
+  hosts: ["__ELK_VM_IP__:5044"]
+
+setup.kibana:
+  host: "__ELK_VM_IP__:5601"
+  username: "elastic"
+  password: "__ELASTIC_PASSWORD__"
+
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: C:\ProgramData\filebeat\logs
+  name: filebeat
+  keepfiles: 7
+  permissions: 0600
