@@ -1,0 +1,45 @@
+Azure - vm 4core - 8gp - 80gp ssd - 12000
+AWS - vm 4core - 8gp - 80gp ssd - 9000
+E2E - vm 4core - 8gp - 80gp ssd -- 2100--- limited managed servises
+
+Azure - NSG
+RG
+NSG
+    Vnet 1  --- Vnet 2  ----> peering 
+
+Locations1
+Chennai
+Locations2 
+SG
+Lan1 to Lan2
+Site to Site vpn - onprem
+AWS - VPC
+E2E - VPC
+Load balencer: 
+    DOS - DDOS 
+        Actual concorrent users 
+            1500 -      
+        HA -- FE -- 2  20mb
+                BE -2  500mb
+                DB -3  4 to 5 gb 9
+                master  (Read and write permission)
+                slave1 (Read)-Salve2(Read)   
+                master and slave
+Architect 
+    Zero trust
+
+secure AWS or Azure-based web application
+
+MFA - managed Keys
+
+ IAM policies
+    Roles and responsiblitis.
+    NGG
+environment. 
+Test - Production Env
+Tools: AWS/Azure Free Tier, IAM policies, Security Groups 
+Outcome: Students present network diagram, policy definitions, and a
+risk register. 
+
+
+
